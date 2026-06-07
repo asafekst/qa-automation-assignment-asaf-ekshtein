@@ -141,4 +141,6 @@ See [DESIGN.md](DESIGN.md) for architecture and trade-offs.
 
 `.github/workflows/tests.yml` runs on push/PR/`workflow_dispatch` to `main`: parallel jobs **API** and **UI** (Python 3.14). Each job runs **once** when all tests are smoke (`--maxfail=1`); when non-smoke regressions are added, smoke gate runs first, then only the regression slice (no overlap). Artifacts: `test-results-api`, `test-results-ui`.
 
-**Latest green CI run:** [Tests #4 on `main`](https://github.com/asafekst/qa-automation-assignment-asaf-ekshtein/actions/runs/27101059766) (both **API tests** and **UI tests** jobs passed).
+**Latest green CI run:** [Tests #13 on `main`](https://github.com/asafekst/qa-automation-assignment-asaf-ekshtein/actions/runs/27101246414) (10 consecutive green runs on `main`; both **API tests** and **UI tests** jobs passed).
+
+> **Repo name:** Rename the GitHub repository to `qa-automation-assignment-asaf-ekshtein` (Settings → General) if it still shows `qa-automation`. Clone URLs and CI badges above expect that name.
