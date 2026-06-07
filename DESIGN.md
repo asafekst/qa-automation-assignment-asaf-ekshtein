@@ -220,8 +220,8 @@ Artifacts: **`test-results-api`** and **`test-results-ui`** (14-day retention).
 |----------|--------|-----|
 | `report.html` | pytest-html | Failing test, traceback, duration |
 | `junit.xml` | pytest | CI dashboards, trend plugins |
-| Trace, screenshot | pytest-playwright | UI failure replay (`playwright show-trace`) |
-| `artifacts/<test>/page.html` | `conftest.py` hook | DOM at failure |
+| Trace (`.zip`), screenshot (`.png`), video | pytest-playwright (`retain-on-failure` / `only-on-failure`) | UI failure replay (`playwright show-trace <trace.zip>`) |
+| `artifacts/<test>/page.html` | `conftest.py` hook | HTML DOM snapshot at failure |
 | `artifacts/<test>/console.log` | `conftest.py` hook | Browser console + page errors |
 | `artifacts/<test>/meta.json` | `conftest.py` hook | URL and title at failure |
 
