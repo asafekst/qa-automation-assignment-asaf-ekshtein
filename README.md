@@ -22,6 +22,8 @@ requirements.txt
 
 ## Setup (< 5 minutes)
 
+**Prerequisites:** Python 3.14
+
 ```bash
 git clone https://github.com/asafekst/qa-automation.git
 cd qa-automation
@@ -135,4 +137,4 @@ See [DESIGN.md](DESIGN.md) for architecture and trade-offs.
 
 ## CI
 
-`.github/workflows/tests.yml` runs on push/PR to `main`: parallel jobs **API** and **UI** (Python 3.12). Each job runs **once** when all tests are smoke (`--maxfail=1`); when non-smoke regressions are added, smoke gate runs first, then only the regression slice (no overlap). Artifacts: `test-results-api`, `test-results-ui`.
+`.github/workflows/tests.yml` runs on push/PR to `main`: parallel jobs **API** and **UI** (Python 3.14). Each job runs **once** when all tests are smoke (`--maxfail=1`); when non-smoke regressions are added, smoke gate runs first, then only the regression slice (no overlap). Artifacts: `test-results-api`, `test-results-ui`.

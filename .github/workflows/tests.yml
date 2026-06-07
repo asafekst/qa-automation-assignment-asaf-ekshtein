@@ -19,7 +19,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           cache: pip
 
       - name: Install dependencies
@@ -34,9 +34,9 @@ jobs:
       - name: Run API tests
         run: |
           set -euo pipefail
-          # No non-smoke regressions yet → single run (smoke = full suite, no duplication).
-          # When regressions are added (api without smoke), smoke gate runs first, then regressions.
-          if python -m pytest tests/api -m "api and not smoke" --collect-only -q 2>&1 | grep -q "no tests collected"; then
+          # pytest exits 5 when zero tests match — capture output without failing (|| true).
+          collect_log=$(python -m pytest tests/api -m "api and not smoke" --collect-only -q 2>&1 || true)
+          if echo "$collect_log" | grep -q "no tests collected"; then
             python -m pytest tests/api -m "smoke and api" --maxfail=1
           else
             python -m pytest tests/api -m "smoke and api" --maxfail=1 -q \
@@ -64,7 +64,7 @@ jobs:
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
           cache: pip
 
       - name: Install dependencies
@@ -82,7 +82,8 @@ jobs:
       - name: Run UI tests
         run: |
           set -euo pipefail
-          if python -m pytest tests/ui -m "ui and not smoke" --browser=chromium --collect-only -q 2>&1 | grep -q "no tests collected"; then
+          collect_log=$(python -m pytest tests/ui -m "ui and not smoke" --browser=chromium --collect-only -q 2>&1 || true)
+          if echo "$collect_log" | grep -q "no tests collected"; then
             python -m pytest tests/ui -m "smoke and ui" --browser=chromium -n 2 --maxfail=1
           else
             python -m pytest tests/ui -m "smoke and ui" --browser=chromium -n 2 --maxfail=1 -q \

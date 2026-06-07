@@ -202,13 +202,13 @@ pytest tests/api -m api
 |---------|-------|
 | Trigger | `push`, `pull_request` → `main` |
 | Runner | `ubuntu-latest` |
-| Python | 3.12 |
+| Python | 3.14 |
 | Strategy | Parallel jobs: `api` ∥ `ui` |
 | Job timeout | 15 minutes |
 
 ### Pipeline steps (per job)
 
-1. Checkout → setup Python 3.12 (pip cache)
+1. Checkout → setup Python 3.14 (pip cache)
 2. `pip install -r requirements.txt` + anti-flake guard
 3. UI only: `python -m playwright install --with-deps chromium`
 4. `mkdir -p test-results/artifacts`
