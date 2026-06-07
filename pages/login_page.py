@@ -20,11 +20,16 @@ class LoginPage:
         self.expect_on_login_page()
         return self
 
-    def login_as(self, username: str, password: str) -> InventoryPage:
+    def submit_credentials(self, username: str, password: str) -> None:
         self.username.fill(username)
         self.password.fill(password)
         self.login_button.click()
-        return InventoryPage(self.page)
+
+    def login_as(self, username: str, password: str) -> InventoryPage:
+        self.submit_credentials(username, password)
+        inventory = InventoryPage(self.page)
+        inventory.expect_loaded()
+        return inventory
 
     def expect_on_login_page(self) -> None:
         expect_url(self.page, rf"{re.escape(LOGIN_PATH)}$")

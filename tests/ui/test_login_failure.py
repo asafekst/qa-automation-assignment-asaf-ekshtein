@@ -7,5 +7,5 @@ pytestmark = [pytest.mark.ui, pytest.mark.smoke]
 
 def test_login_failure_strict_error(login_page) -> None:
     login_page.open()
-    login_page.login_as(STANDARD_USER, INVALID_PASSWORD)
+    login_page.submit_credentials(STANDARD_USER, INVALID_PASSWORD)
     login_page.expect_invalid_credentials_error()

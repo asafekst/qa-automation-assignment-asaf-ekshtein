@@ -13,7 +13,7 @@ Minimal UI and API test suite in one project.
 pages/                 # UI page objects (Playwright)
 tests/
   ui/                  # 4 Swag Labs scenarios
-  api/                 # 4 JSONPlaceholder scenarios + helpers
+  api/                 # 5 API test functions + helpers
 conftest.py            # Shared fixtures (UI + API)
 constants.py           # UI credentials and exact copy
 requirements.txt
@@ -46,7 +46,7 @@ Optional: copy `.env.example` → `.env` for custom URLs.
 pytest tests/ui --browser=chromium
 pytest tests/api
 
-# Smoke (8 tests)
+# Smoke (10 tests: 4 UI + 6 API)
 pytest -m smoke --browser=chromium   # UI smoke only if path includes ui
 pytest tests/ui -m smoke --browser=chromium
 pytest tests/api -m smoke
@@ -110,7 +110,8 @@ See [DESIGN.md](DESIGN.md) for architecture and trade-offs.
 | 1 | GET `/posts` | 200, JSON array, post schema |
 | 2 | GET `/posts/{id}` | id `1` → 200; `99999` → 404 |
 | 3 | POST `/posts` | 201, echoed payload, generated `id` |
-| 4 | PUT + DELETE | Updated fields; DELETE 200/204 (no persistence) |
+| 4 | PUT `/posts/{id}` | 200, updated fields echoed |
+| 5 | DELETE `/posts/{id}` | 200/204 accepted (no persistence check) |
 
 - `requests` session per test, shared assertion helpers in `tests/api/helpers.py`  
 

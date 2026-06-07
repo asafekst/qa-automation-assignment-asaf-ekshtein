@@ -13,7 +13,6 @@ pytestmark = [pytest.mark.ui, pytest.mark.smoke]
 
 def test_checkout_end_to_end(login_page) -> None:
     inventory = login_page.open().login_as(STANDARD_USER, PASSWORD)
-    inventory.expect_loaded()
     inventory.add_to_cart(BACKPACK)
 
     checkout = inventory.open_cart().checkout()

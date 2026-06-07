@@ -42,14 +42,11 @@ def test_post_creates_resource_and_echoes_payload(
     assert_created_post(response, new_post)
 
 
-def test_put_updates_fields_and_delete_succeeds(
-    http, api_base_url: str, updated_post: dict
-) -> None:
-    # Kept as one test: JSONPlaceholder is stateless — PUT/DELETE do not share real
-    # server state. Combined flow documents the write lifecycle; splitting would add
-    # files without stronger signal (no persistence or ordering to verify).
-    put_response = http.put(posts_url(api_base_url, VALID_POST_ID), json=updated_post)
-    assert_updated_post(put_response, VALID_POST_ID, updated_post)
+def test_put_updates_fields(http, api_base_url: str, updated_post: dict) -> None:
+    response = http.put(posts_url(api_base_url, VALID_POST_ID), json=updated_post)
+    assert_updated_post(response, VALID_POST_ID, updated_post)
 
-    delete_response = http.delete(posts_url(api_base_url, VALID_POST_ID))
-    assert_delete_accepted(delete_response)
+
+def test_delete_is_accepted(http, api_base_url: str) -> None:
+    response = http.delete(posts_url(api_base_url, VALID_POST_ID))
+    assert_delete_accepted(response)

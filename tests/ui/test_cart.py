@@ -7,7 +7,6 @@ pytestmark = [pytest.mark.ui, pytest.mark.smoke]
 
 def test_add_two_items_validates_badge_and_cart(login_page) -> None:
     inventory = login_page.open().login_as(STANDARD_USER, PASSWORD)
-    inventory.expect_loaded()
     inventory.add_to_cart(BACKPACK)
     inventory.add_to_cart(BIKE_LIGHT)
     inventory.expect_cart_badge(2)
