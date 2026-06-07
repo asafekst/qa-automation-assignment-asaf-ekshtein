@@ -15,7 +15,7 @@ class LoginPage:
         self.login_button = page.get_by_test_id("login-button")
         self.error = page.get_by_test_id("error")
 
-    def open(self) -> "LoginPage":
+    def open(self) -> LoginPage:
         self.page.goto(LOGIN_PATH)
         self.expect_on_login_page()
         return self

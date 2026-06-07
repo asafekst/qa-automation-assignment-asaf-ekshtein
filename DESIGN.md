@@ -250,13 +250,36 @@ Artifacts: **`test-results-api`** and **`test-results-ui`** (14-day retention).
 
 ---
 
-## 12. Evolution Path
+## 12. AI Tooling (Cursor)
 
-Prioritized next steps if the suite grows:
+| Use | How |
+|-----|-----|
+| Scaffolding | Initial pytest + Playwright layout, page objects, and API helpers |
+| CI debugging | Identified `pipefail` + pytest exit-code 5 interaction in smoke detection |
+| Documentation | README/DESIGN alignment with actual workflow and artifact layout |
+| Review discipline | Architecture, assertions, and trade-offs remain human-owned; AI output is verified by local runs + CI |
 
-1. **Environment control** — mock or staging endpoints for external targets (highest reliability ROI).
-2. **API depth** — negative/malformed payload cases via existing helpers.
-3. **UI performance** — `storageState` for login once scenario count justifies it.
-4. **CI hardening** — pinned dependency lockfile; scheduled runs against live targets.
+Cursor accelerated boilerplate and cross-file consistency; it did not replace judgment on anti-flakiness rules, test isolation, or what belongs in page objects vs tests.
+
+---
+
+## 13. Next 48 Hours
+
+If the suite had two more working days, priority order:
+
+1. **Staging / mocks** — remove live-network variance for Swag Labs and JSONPlaceholder (highest stability ROI).
+2. **Regression slice** — add `@pytest.mark.api` / `@pytest.mark.ui` tests *without* `smoke` (negative API payloads, sort/filter UI bonus).
+3. **`storageState` login** — cut UI runtime once scenario count exceeds ~10.
+4. **Lockfile + scheduled CI** — `pip-tools` pin file; nightly workflow against live targets for drift detection.
+5. **Allure or trend dashboard** — only if stakeholders need historical charts beyond pytest-html + JUnit.
+
+---
+
+## 14. Longer-Term Evolution
+
+1. **Environment control** — mock or staging endpoints for external targets.
+2. **API depth** — malformed payload and auth-edge cases via existing helpers.
+3. **UI performance** — parallel worker tuning and runner resource limits documented from real CI metrics.
+4. **CI hardening** — dependency lockfile; optional `ruff` gate in pipeline.
 
 The current design is deliberately small. The next operational pain is **environment variance and CI signal quality**, not additional abstraction layers.

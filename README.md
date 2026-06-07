@@ -22,11 +22,11 @@ requirements.txt
 
 ## Setup (< 5 minutes)
 
-**Prerequisites:** Python 3.14
+**Prerequisites:** Python 3.14, pip, Git
 
 ```bash
-git clone https://github.com/asafekst/qa-automation.git
-cd qa-automation
+git clone https://github.com/asafekst/qa-automation-assignment-asaf-ekshtein.git
+cd qa-automation-assignment-asaf-ekshtein
 python -m venv .venv
 
 # Windows
@@ -137,4 +137,8 @@ See [DESIGN.md](DESIGN.md) for architecture and trade-offs.
 
 ## CI
 
-`.github/workflows/tests.yml` runs on push/PR to `main`: parallel jobs **API** and **UI** (Python 3.14). Each job runs **once** when all tests are smoke (`--maxfail=1`); when non-smoke regressions are added, smoke gate runs first, then only the regression slice (no overlap). Artifacts: `test-results-api`, `test-results-ui`.
+[![Tests](https://github.com/asafekst/qa-automation-assignment-asaf-ekshtein/actions/workflows/tests.yml/badge.svg)](https://github.com/asafekst/qa-automation-assignment-asaf-ekshtein/actions/workflows/tests.yml)
+
+`.github/workflows/tests.yml` runs on push/PR/`workflow_dispatch` to `main`: parallel jobs **API** and **UI** (Python 3.14). Each job runs **once** when all tests are smoke (`--maxfail=1`); when non-smoke regressions are added, smoke gate runs first, then only the regression slice (no overlap). Artifacts: `test-results-api`, `test-results-ui`.
+
+**Latest green CI run:** [Tests #4 on `main`](https://github.com/asafekst/qa-automation-assignment-asaf-ekshtein/actions/runs/27101059766) (both **API tests** and **UI tests** jobs passed).
