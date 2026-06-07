@@ -13,7 +13,7 @@ Minimal UI and API test suite in one project.
 pages/                 # UI page objects (Playwright)
 tests/
   ui/                  # 4 Swag Labs scenarios
-  api/                 # 5 API test functions + helpers
+  api/                 # 6 API scenarios (5 functions + helpers)
 conftest.py            # Shared fixtures (UI + API)
 constants.py           # UI credentials and exact copy
 requirements.txt
@@ -141,4 +141,4 @@ See [DESIGN.md](DESIGN.md) for architecture and trade-offs.
 
 `.github/workflows/tests.yml` runs on push/PR/`workflow_dispatch` to `main`: parallel jobs **API** and **UI** (Python 3.14). Each job runs **once** when all tests are smoke (`--maxfail=1`); when non-smoke regressions are added, smoke gate runs first, then only the regression slice (no overlap). Artifacts: `test-results-api`, `test-results-ui`.
 
-**Latest green CI run:** [Tests #14 on `main`](https://github.com/asafekst/qa-automation-assignment-asaf-ekshtein/actions/runs/27101290358) (11+ consecutive green runs on `main`; both **API tests** and **UI tests** jobs passed).
+**Latest green CI run:** [Tests #15 on `main`](https://github.com/asafekst/qa-automation-assignment-asaf-ekshtein/actions/runs/27101390590) (12 consecutive green runs on `main`; both **API tests** and **UI tests** jobs passed).
