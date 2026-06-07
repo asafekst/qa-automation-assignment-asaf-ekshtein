@@ -10,59 +10,93 @@ env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
-  test:
+  api:
+    name: API tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    strategy:
-      matrix:
-        suite: [api, ui]
     steps:
       - uses: actions/checkout@v4
 
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.14"
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+
+      - name: Anti-flakiness guard
+        run: python scripts/check_anti_flake.py
+
+      - name: Create output directories
+        run: mkdir -p test-results/artifacts
+
+      - name: Run API tests
+        run: |
+          set -euo pipefail
+          # No non-smoke regressions yet → single run (smoke = full suite, no duplication).
+          # When regressions are added (api without smoke), smoke gate runs first, then regressions.
+          if python -m pytest tests/api -m "api and not smoke" --collect-only -q 2>&1 | grep -q "no tests collected"; then
+            python -m pytest tests/api -m "smoke and api" --maxfail=1
+          else
+            python -m pytest tests/api -m "smoke and api" --maxfail=1 -q \
+              -o "addopts=-v --strict-markers"
+            python -m pytest tests/api -m "api and not smoke"
+          fi
+        env:
+          API_BASE_URL: https://jsonplaceholder.typicode.com
+
+      - name: Upload API test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-api
+          path: test-results/
+          retention-days: 14
+          if-no-files-found: warn
+
+  ui:
+    name: UI tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
           cache: pip
 
       - name: Install dependencies
         run: python -m pip install -r requirements.txt
 
       - name: Install Playwright browsers and Ubuntu dependencies
-        if: matrix.suite == 'ui'
         run: python -m playwright install --with-deps chromium
+
+      - name: Anti-flakiness guard
+        run: python scripts/check_anti_flake.py
 
       - name: Create output directories
         run: mkdir -p test-results/artifacts
 
-      - name: Run API tests
-        if: matrix.suite == 'api'
-        run: >
-          python -m pytest tests/api -m api
-          --junitxml=test-results/junit.xml
-          --html=test-results/report.html
-          --self-contained-html
-        env:
-          API_BASE_URL: https://jsonplaceholder.typicode.com
-
       - name: Run UI tests
-        if: matrix.suite == 'ui'
-        run: >
-          python -m pytest tests/ui -m ui --browser=chromium -n 2
-          --junitxml=test-results/junit.xml
-          --html=test-results/report.html
-          --self-contained-html
-          --tracing=retain-on-failure
-          --screenshot=only-on-failure
-          --video=retain-on-failure
-          --output=test-results
+        run: |
+          set -euo pipefail
+          if python -m pytest tests/ui -m "ui and not smoke" --browser=chromium --collect-only -q 2>&1 | grep -q "no tests collected"; then
+            python -m pytest tests/ui -m "smoke and ui" --browser=chromium -n 2 --maxfail=1
+          else
+            python -m pytest tests/ui -m "smoke and ui" --browser=chromium -n 2 --maxfail=1 -q \
+              -o "addopts=-v --strict-markers --browser=chromium --tracing=retain-on-failure --screenshot=only-on-failure --video=retain-on-failure --output=test-results"
+            python -m pytest tests/ui -m "ui and not smoke" --browser=chromium -n 2
+          fi
         env:
           BASE_URL: https://www.saucedemo.com
 
-      - name: Upload test results
+      - name: Upload UI test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.suite }}
+          name: test-results-ui
           path: test-results/
           retention-days: 14
           if-no-files-found: warn

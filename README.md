@@ -23,8 +23,8 @@ requirements.txt
 ## Setup (< 5 minutes)
 
 ```bash
-git clone <repo-url>
-cd project_cursor
+git clone https://github.com/asafekst/qa-automation.git
+cd qa-automation
 python -m venv .venv
 
 # Windows
@@ -46,10 +46,14 @@ Optional: copy `.env.example` → `.env` for custom URLs.
 pytest tests/ui --browser=chromium
 pytest tests/api
 
-# Smoke (10 tests: 4 UI + 6 API)
-pytest -m smoke --browser=chromium   # UI smoke only if path includes ui
-pytest tests/ui -m smoke --browser=chromium
-pytest tests/api -m smoke
+# Smoke (fail fast — same subset CI runs first)
+pytest tests/api -m "smoke and api" --maxfail=1 -q
+pytest tests/ui -m "smoke and ui" --browser=chromium -n 2 --maxfail=1 -q
+
+# Full suites
+pytest tests/api -m api
+pytest tests/ui -m ui --browser=chromium -n 2 \
+  --tracing=retain-on-failure --screenshot=only-on-failure --output=test-results
 
 # Parallel UI (required: at least 2 workers; tests are isolated per browser context)
 pytest tests/ui --browser=chromium -n 2
@@ -84,7 +88,7 @@ python scripts/check_anti_flake.py
 | JUnit | `test-results/junit.xml` |
 | Failed UI: screenshot | `test-results/` (pytest-playwright, `--screenshot=only-on-failure`) |
 | Failed UI: trace | `test-results/` (`--tracing=retain-on-failure`; view with `playwright show-trace <file.zip>`) |
-| Failed UI: DOM + console | `test-results/artifacts/<test>/page.html`, `console.log`, `meta.json` |
+| Failed UI: DOM + console | `test-results/artifacts/<test>/page.html`, `console.log`, `meta.json`, `screenshot.png` |
 | Failed UI: video | `test-results/` (`--video=retain-on-failure`) |
 
 CI runs API and UI jobs **in parallel** on every push/PR to `main`. Each job uploads its `test-results/` folder (HTML report, JUnit, and UI failure traces/screenshots).
@@ -131,4 +135,4 @@ See [DESIGN.md](DESIGN.md) for architecture and trade-offs.
 
 ## CI
 
-`.github/workflows/tests.yml` runs on push/PR to `main`: matrix jobs **API** (`-m api`) and **UI** (`-m ui`, `-n 2`) in parallel → upload `test-results-api` and `test-results-ui` (HTML report, JUnit, traces, screenshots, failure artifacts).
+`.github/workflows/tests.yml` runs on push/PR to `main`: parallel jobs **API** and **UI** (Python 3.12). Each job runs **once** when all tests are smoke (`--maxfail=1`); when non-smoke regressions are added, smoke gate runs first, then only the regression slice (no overlap). Artifacts: `test-results-api`, `test-results-ui`.

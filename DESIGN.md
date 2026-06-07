@@ -44,7 +44,7 @@ Single-repository test suite covering **Swag Labs** (browser UI) and **JSONPlace
 | Marker | Purpose |
 |--------|---------|
 | `smoke` | Critical-path subset (all current tests) |
-| `ui` / `api` | Suite filter for local runs and CI matrix jobs |
+| `ui` / `api` | Suite filter for local runs and CI parallel jobs |
 
 ---
 
@@ -65,16 +65,28 @@ No additional layers (BDD, custom runners, API client SDKs) until suite size jus
 ## 4. Architecture
 
 ```
-tests/ui/                 Test scenarios (UI)
-tests/api/
-  test_posts.py           Test scenarios (API)
-  helpers.py              Assertion + URL helpers
-  constants.py            API payloads and IDs
-pages/                    Fluent page objects + shared Playwright assertions
+pages/
+  login_page.py           Fluent POM — login
+  inventory_page.py       Fluent POM — catalog / cart badge
+  cart_page.py            Fluent POM — cart lines
+  checkout_page.py        Fluent POM — checkout funnel
+  assertions.py           Shared Playwright assertions
+tests/
+  ui/                     4 UI scenarios
+  api/
+    test_posts.py         API scenarios
+    helpers.py            URL builder + HTTP assertions
+    constants.py          Post IDs and payloads
 constants.py              UI credentials, copy, products, checkout totals
-conftest.py               Shared fixtures, env URLs, failure artifact hook
+conftest.py               Fixtures, env URLs, failure artifact hook
+pytest.ini                Markers, strict mode, report defaults
+pyproject.toml            Ruff lint config
+requirements.txt
+README.md
+DESIGN.md
+.env.example
 .github/workflows/tests.yml
-scripts/check_anti_flake.py   Local guard (no sleeps / brittle waits)
+scripts/check_anti_flake.py
 ```
 
 ### Layer responsibilities
@@ -190,23 +202,25 @@ pytest tests/api -m api
 |---------|-------|
 | Trigger | `push`, `pull_request` → `main` |
 | Runner | `ubuntu-latest` |
-| Python | 3.14 |
-| Strategy | Matrix: `api` ∥ `ui` |
+| Python | 3.12 |
+| Strategy | Parallel jobs: `api` ∥ `ui` |
 | Job timeout | 15 minutes |
 
-### Pipeline steps (per matrix job)
+### Pipeline steps (per job)
 
-1. Checkout → setup Python (pip cache)
-2. `pip install -r requirements.txt`
+1. Checkout → setup Python 3.12 (pip cache)
+2. `pip install -r requirements.txt` + anti-flake guard
 3. UI only: `python -m playwright install --with-deps chromium`
 4. `mkdir -p test-results/artifacts`
-5. Run pytest with suite marker
+5. **Single non-duplicative run** — if no `api/ui and not smoke` tests exist, one `-m "smoke and …"` run with `--maxfail=1` and reports; otherwise smoke gate then regression slice only
 6. Upload artifact (`if: always()`)
 
-| Job | Command | Env |
-|-----|---------|-----|
-| **api** | `pytest tests/api -m api` | `API_BASE_URL` |
-| **ui** | `pytest tests/ui -m ui --browser=chromium -n 2` | `BASE_URL` |
+| Job | When all tests are smoke (today) | When regressions exist | Env |
+|-----|----------------------------------|------------------------|-----|
+| **api** | `pytest tests/api -m "smoke and api" --maxfail=1` (once) | smoke gate → `pytest -m "api and not smoke"` | `API_BASE_URL` |
+| **ui** | `pytest tests/ui -m "smoke and ui" -n 2 --maxfail=1` (once) | smoke gate → `pytest -m "ui and not smoke" -n 2` | `BASE_URL` |
+
+Playwright artifact options live in `pytest.ini` (not duplicated on the CLI).
 
 Both jobs emit `test-results/report.html` and `test-results/junit.xml`.
 
@@ -223,7 +237,8 @@ Artifacts: **`test-results-api`** and **`test-results-ui`** (14-day retention).
 | Trace (`.zip`), screenshot (`.png`), video | pytest-playwright (`retain-on-failure` / `only-on-failure`) | UI failure replay (`playwright show-trace <trace.zip>`) |
 | `artifacts/<test>/page.html` | `conftest.py` hook | HTML DOM snapshot at failure |
 | `artifacts/<test>/console.log` | `conftest.py` hook | Browser console + page errors |
-| `artifacts/<test>/meta.json` | `conftest.py` hook | URL and title at failure |
+| `artifacts/<test>/meta.json` | `conftest.py` hook | URL, title, viewport, timestamp |
+| `artifacts/<test>/screenshot.png` | `conftest.py` hook | Full-page screenshot at failure |
 
 **Triage flow:**
 
@@ -242,6 +257,6 @@ Prioritized next steps if the suite grows:
 1. **Environment control** — mock or staging endpoints for external targets (highest reliability ROI).
 2. **API depth** — negative/malformed payload cases via existing helpers.
 3. **UI performance** — `storageState` for login once scenario count justifies it.
-4. **CI hardening** — optional `ruff` + anti-flake gate in pipeline; pinned dependency lockfile.
+4. **CI hardening** — pinned dependency lockfile; scheduled runs against live targets.
 
 The current design is deliberately small. The next operational pain is **environment variance and CI signal quality**, not additional abstraction layers.
